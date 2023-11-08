@@ -4,15 +4,9 @@ pragma solidity 0.8.13;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC721.sol";
 import "./ERC2981PerTokenRoyalties.sol";
-import {DefaultOperatorFilterer} from "./operator-filter-registry/DefaultOperatorFilterer.sol";
 
 /// @custom:security-contact contact@verse.works
-contract LondonTokenBase is
-    ERC721,
-    Ownable,
-    ERC2981PerTokenRoyalties,
-    DefaultOperatorFilterer
-{
+contract LondonTokenBase is ERC721, Ownable, ERC2981PerTokenRoyalties {
     constructor() ERC721("", "VERSE", "") {}
 
     function initialize(
@@ -31,66 +25,11 @@ contract LondonTokenBase is
         _setTokenRoyalty(owner_, royaltyValue_);
         creator = owner_;
         _transferOwnership(owner_);
-        initDefaultOperatorFilterer();
     }
 
     uint256 public totalSupply;
 
     address public creator;
-
-    /**
-     * @dev OS Operator filtering
-     */
-    function setApprovalForAll(
-        address operator,
-        bool approved
-    ) public override onlyAllowedOperatorApproval(operator) {
-        super.setApprovalForAll(operator, approved);
-    }
-
-    /**
-     * @dev OS Operator filtering
-     */
-    function approve(
-        address operator,
-        uint256 tokenId
-    ) public override onlyAllowedOperatorApproval(operator) {
-        super.approve(operator, tokenId);
-    }
-
-    /**
-     * @dev OS Operator filtering
-     */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public override onlyAllowedOperator(from) {
-        super.transferFrom(from, to, tokenId);
-    }
-
-    /**
-     * @dev OS Operator filtering
-     */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public override onlyAllowedOperator(from) {
-        super.safeTransferFrom(from, to, tokenId);
-    }
-
-    /**
-     * @dev OS Operator filtering
-     */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) public override onlyAllowedOperator(from) {
-        super.safeTransferFrom(from, to, tokenId, data);
-    }
 
     address public mintingManager;
 
