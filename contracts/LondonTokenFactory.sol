@@ -22,7 +22,14 @@ contract LondonTokenFactory {
         address owner_
     ) external {
         address clone = Clones.clone(tokenImplementation);
-        LondonTokenBase(clone).initialize(uri_, minter_, gatewayManager_, contractName_, royaltyValue_, owner_);
+        LondonTokenBase(clone).initialize(
+            uri_,
+            minter_,
+            gatewayManager_,
+            contractName_,
+            royaltyValue_,
+            owner_
+        );
         emit NewCollection(clone);
     }
 }

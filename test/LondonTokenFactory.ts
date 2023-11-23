@@ -3,7 +3,8 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { expectRevert } = require("@openzeppelin/test-helpers");
 import {
-  LondonTokenBase as LondonTokenBaseType,
+  FileDeployer,
+  LondonTokenBase,
   LondonTokenFactory as LondonTokenFactoryType,
 } from "../typechain";
 
@@ -13,9 +14,9 @@ const collectionName = "Tests by Verse";
 const royaltyValue = "500";
 
 describe("Factory contract ERC721", function () {
-  let accounts: SignerWithAddress[];
   let londonTokenFactory: LondonTokenFactoryType;
-  let collection: LondonTokenBaseType;
+  let accounts: SignerWithAddress[];
+  let collection: LondonTokenBase;
 
   it("Deploy Factory contract", async function () {
     accounts = await ethers.getSigners();
@@ -48,9 +49,16 @@ describe("Factory contract ERC721", function () {
       );
 
     const newCollectionReceipt = await collectionTx.wait();
-    const collectionAddress = newCollectionReceipt.events.filter(
+    const newCollectionEvent = newCollectionReceipt.events?.filter(
       (e) => e.event === "NewCollection"
-    )[0].args[0];
+    );
+    const collectionAddress =
+      newCollectionEvent &&
+      newCollectionEvent.length > 0 &&
+      newCollectionEvent[0].args
+        ? newCollectionEvent[0].args[0]
+        : undefined;
+
     await expect(collectionTx, "New Collection event").to.emit(
       londonTokenFactory,
       "NewCollection"
@@ -75,9 +83,10 @@ describe("Factory contract ERC721", function () {
   });
 });
 
+let collection: LondonTokenBase;
+let deployer: SignerWithAddress;
+
 describe("Test NFT collection", function () {
-  let collection: LondonTokenBaseType;
-  let deployer: SignerWithAddress;
   let mintingManager: SignerWithAddress;
   let gatewayManager: SignerWithAddress;
   let collector: SignerWithAddress;
@@ -163,13 +172,13 @@ describe("Test NFT collection", function () {
   it("Minter should mint NFT", async function () {
     const mintTx = await collection
       .connect(mintingManager)
-      .mintWithCreator(collector.address, "1");
+      .mint(collector.address, "1", "");
     await expect(mintTx, "New transfer event").to.emit(collection, "Transfer");
   });
 
   it("Collector should not mint NFT", async function () {
     await expectRevert(
-      collection.connect(collector).mintWithCreator(collector.address, "2"),
+      collection.connect(collector).mint(collector.address, "2", ""),
       "Permission denied"
     );
   });
@@ -179,9 +188,10 @@ describe("Test NFT collection", function () {
       .fill(0)
       .map((_) => ethers.Wallet.createRandom().address);
     const tokenIds = Array.from({ length: 50 }, (_, i) => String(i + 10000));
+    const payloads = Array(50).fill("");
     const mintTx = await collection
       .connect(mintingManager)
-      .batchMintWithCreator(addresses, tokenIds);
+      .mintBatch(addresses, tokenIds, payloads);
     await expect(mintTx, "New transfer event").to.emit(collection, "Transfer");
   });
 
@@ -246,5 +256,53 @@ describe("Test NFT collection", function () {
       collection.connect(collector).setGatewayManager(collector.address),
       "VM Exception while processing transaction: reverted with reason string 'Ownable: caller is not the owner"
     );
+  });
+});
+
+describe("Test NFT collection on-chain", function () {
+  let fileDeployer: FileDeployer;
+  const name = "index.js";
+  const content = "console.log('hello world')";
+  let contentAddress: string[] = [];
+
+  it("Bootstrap FileDeployer", async function () {
+    const FileDeployerFactory = await ethers.getContractFactory("FileDeployer");
+    fileDeployer = await FileDeployerFactory.connect(deployer).deploy();
+    await fileDeployer.deployed();
+  });
+
+  it("Deploy code on FileDeployer", async function () {
+    const tx = await fileDeployer.connect(deployer).deploy([name], [content]);
+    const receipt = await tx.wait();
+
+    receipt.events?.forEach((event) => {
+      const argName = event.args?.["name"];
+      expect(name).to.equal(argName);
+
+      const address = event.args?.["contentAddress"];
+      contentAddress.push(address);
+    });
+  });
+
+  it("Associate code with collection", async function () {
+    const tx = await collection.connect(deployer).addFile(name, contentAddress);
+    await tx.wait();
+  });
+
+  it("List of files matches", async function () {
+    const files = await collection.files();
+    expect(files).to.contain(name);
+  });
+
+  it("File storage contract matches", async function () {
+    const address = await collection.fileStorage(name);
+    for (let i = 0; i < contentAddress.length; i++) {
+      expect(address).to.contain(contentAddress[i]);
+    }
+  });
+
+  it("File storage content matches", async function () {
+    const fileContents = await collection.fileContents(name);
+    expect(fileContents).to.equal(content);
   });
 });

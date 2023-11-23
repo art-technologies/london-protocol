@@ -4,9 +4,15 @@ pragma solidity 0.8.13;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC721.sol";
 import "./ERC2981PerTokenRoyalties.sol";
+import "./fs/OnchainFileStorage.sol";
 
 /// @custom:security-contact contact@verse.works
-contract LondonTokenBase is ERC721, Ownable, ERC2981PerTokenRoyalties {
+contract LondonTokenBase is
+    ERC721,
+    Ownable,
+    ERC2981PerTokenRoyalties,
+    OnchainFileStorage
+{
     constructor() ERC721("", "VERSE", "") {}
 
     function initialize(
@@ -35,6 +41,70 @@ contract LondonTokenBase is ERC721, Ownable, ERC2981PerTokenRoyalties {
 
     address public gatewayManager;
 
+    mapping(uint256 => string) public _payloads;
+
+    string public artistName;
+    string public projectName;
+    string public projectDescription;
+    string public website;
+    string public notes;
+    string public license;
+
+    /**
+        On Chain parameters.
+     */
+
+    /**
+     * @dev Creates a token with `id`, and assigns them to `to`.
+     * Method emits two transfer events.
+     *
+     * Emits a {Transfer} event.
+     *
+     * Requirements:
+     *
+     * - `to` cannot be the zero address.
+     */
+    function mint(
+        address to,
+        uint256 tokenId,
+        string memory payload
+    ) public onlyMinter {
+        require(to != address(0), "mint to the zero address");
+        require(!_exists(tokenId), "ERC721: token already minted");
+
+        _balances[to] += 1;
+        totalSupply += 1;
+        _owners[tokenId] = to;
+        _payloads[tokenId] = payload;
+
+        emit Transfer(address(0), creator, tokenId);
+        emit Transfer(creator, to, tokenId);
+    }
+
+    /**
+     * @dev Creates a token with `id`, and assigns them to `to`.
+     * Method emits two transfer events.
+     *
+     * Emits a {Transfer} events for intermediate artist.
+     *
+     * Requirements:
+     *
+     * - `to` cannot be the zero address.
+     * - If `to` refers to a smart contract, it must implement {IERC1155Receiver-onERC1155Received} and return the
+     * acceptance magic value.
+     */
+    function mintBatch(
+        address[] memory to,
+        uint256[] memory tokenIds,
+        string[] memory payloads
+    ) public onlyMinter {
+        require(tokenIds.length == to.length, "Arrays length mismatch");
+
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            mint(to[i], tokenIds[i], payloads[i]);
+        }
+    }
+
     /**
      * @dev Creates a token with `id`, and assigns them to `to`.
      * In addition it sets the royalties for `royaltyRecipient` of the value `royaltyValue`.
@@ -47,15 +117,7 @@ contract LondonTokenBase is ERC721, Ownable, ERC2981PerTokenRoyalties {
      * - `to` cannot be the zero address.
      */
     function mintWithCreator(address to, uint256 tokenId) public onlyMinter {
-        require(to != address(0), "mint to the zero address");
-        require(!_exists(tokenId), "ERC721: token already minted");
-
-        _balances[to] += 1;
-        totalSupply += 1;
-        _owners[tokenId] = to;
-
-        emit Transfer(address(0), creator, tokenId);
-        emit Transfer(creator, to, tokenId);
+        mint(to, tokenId, "");
     }
 
     /**
@@ -77,7 +139,7 @@ contract LondonTokenBase is ERC721, Ownable, ERC2981PerTokenRoyalties {
         require(tokenIds.length == to.length, "Arrays length mismatch");
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            mintWithCreator(to[i], tokenIds[i]);
+            mint(to[i], tokenIds[i], "");
         }
     }
 

@@ -21,16 +21,28 @@ async function main() {
     deployer.address
   );
   const newCollectionReceipt = await collectionTx.wait();
+  console.log(newCollectionReceipt);
 
   if (
     newCollectionReceipt.events === undefined ||
-    newCollectionReceipt.events.length === 0 ||
-    newCollectionReceipt.events[0].args === undefined
+    newCollectionReceipt.events.length === 0
   ) {
     throw new Error("NewCollection event not found");
   }
 
-  const collectionAddress = newCollectionReceipt.events[0].args[0];
+  const newCollectionEvent = newCollectionReceipt.events.find(
+    (e) => e.event === "NewCollection"
+  );
+
+  if (newCollectionEvent === undefined) {
+    throw new Error("NewCollection event not found");
+  }
+
+  const collectionAddress = newCollectionEvent.args?.[0];
+
+  if (collectionAddress === undefined) {
+    throw new Error("Collection address not found");
+  }
 
   const collection = (
     await ethers.getContractFactory("LondonTokenBase")
