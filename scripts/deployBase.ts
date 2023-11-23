@@ -11,8 +11,7 @@ async function main() {
   const londonTokenBaseFactory = await LondonTokenBaseFactory.deploy();
   await londonTokenBaseFactory.deployed();
   const receiptFactory = await londonTokenBaseFactory.deployTransaction.wait();
-  console.log(receiptFactory)
-
+  console.log(receiptFactory);
 }
 
 main().catch((error) => {
