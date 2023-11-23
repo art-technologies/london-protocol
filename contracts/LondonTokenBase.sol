@@ -41,18 +41,16 @@ contract LondonTokenBase is
 
     address public gatewayManager;
 
+    /**
+        On Chain parameters.
+     */
     mapping(uint256 => string) public _payloads;
-
     string public artistName;
     string public projectName;
     string public projectDescription;
     string public website;
     string public notes;
     string public license;
-
-    /**
-        On Chain parameters.
-     */
 
     /**
      * @dev Creates a token with `id`, and assigns them to `to`.
