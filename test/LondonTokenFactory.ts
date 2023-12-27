@@ -272,7 +272,10 @@ describe("Test NFT collection on-chain", function () {
   });
 
   it("Deploy code on FileDeployer", async function () {
-    const tx = await fileDeployer.connect(deployer).deploy([name], [content]);
+    const tx = await fileDeployer.connect(deployer).deploy(
+      [name],
+      [content].map((e) => ethers.utils.toUtf8Bytes(e))
+    );
     const receipt = await tx.wait();
 
     receipt.events?.forEach((event) => {
@@ -303,6 +306,8 @@ describe("Test NFT collection on-chain", function () {
 
   it("File storage content matches", async function () {
     const fileContents = await collection.fileContents(name);
-    expect(fileContents).to.equal(content);
+    const decodedContents = ethers.utils.toUtf8String(fileContents);
+
+    expect(decodedContents).to.equal(content);
   });
 });
