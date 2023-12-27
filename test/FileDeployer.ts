@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { FileDeployer } from "../typechain";
+import { hexlify } from "ethers/lib/utils";
 
 describe("FileDeployer contract", function () {
   let accounts: SignerWithAddress[];
@@ -25,7 +26,10 @@ describe("FileDeployer contract", function () {
   });
 
   it("Write some content", async function () {
-    const tx = await fileDeployer.connect(accounts[0]).deploy(names, contents);
+    const tx = await fileDeployer.connect(accounts[0]).deploy(
+      names,
+      contents.map((e) => ethers.utils.formatBytes32String(e))
+    );
     const receipt = await tx.wait();
 
     receipt.events?.forEach((event) => {
@@ -38,7 +42,9 @@ describe("FileDeployer contract", function () {
   });
 
   it("Written content should exist", async function () {
-    const addresses = await fileDeployer.getDataAddresses(contents);
+    const addresses = await fileDeployer.getDataAddresses(
+      contents.map((e) => ethers.utils.formatBytes32String(e))
+    );
 
     for (let i = 0; i < addresses.length; i++) {
       expect(addresses[i]).to.equal(contentAddresses[names[i]]);
@@ -46,10 +52,10 @@ describe("FileDeployer contract", function () {
   });
 
   it("Not written content should not exist", async function () {
-    const addresses = await fileDeployer.getDataAddresses([
-      "Unseen content 1",
-      "Unseen content 2",
-    ]);
+    const unseenContent = ["Unseen content 1", "Unseen content 2"].map((e) =>
+      ethers.utils.formatBytes32String(e)
+    );
+    const addresses = await fileDeployer.getDataAddresses(unseenContent);
 
     for (let i = 0; i < addresses.length; i++) {
       expect(addresses[i]).to.equal(zeroAddress);

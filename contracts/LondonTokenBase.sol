@@ -46,11 +46,49 @@ contract LondonTokenBase is
      */
     mapping(uint256 => string) public _payloads;
     string public artistName;
-    string public projectName;
     string public projectDescription;
-    string public website;
-    string public notes;
+    string public year;
     string public license;
+
+    /**
+     * @dev Sets Artist Name for the collection.
+     *
+     */
+    function setArtistName(string memory artistName_) public onlyOwner {
+        artistName = artistName_;
+    }
+
+    /**
+     * @dev Sets Collection Name for the collection.
+     *
+     */
+    function setCollectionName(string memory name_) public onlyOwner {
+        _name = name_;
+    }
+
+    /**
+     * @dev Sets Description for the collection.
+     *
+     */
+    function setDescription(string memory description_) public onlyOwner {
+        projectDescription = description_;
+    }
+
+    /**
+     * @dev Sets Year for the collection.
+     *
+     */
+    function setYear(string memory year_) public onlyOwner {
+        year = year_;
+    }
+
+    /**
+     * @dev Sets License for the collection.
+     *
+     */
+    function setLicense(string memory license_) public onlyOwner {
+        license = license_;
+    }
 
     /**
      * @dev Creates a token with `id`, and assigns them to `to`.

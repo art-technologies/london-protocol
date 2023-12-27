@@ -102,7 +102,7 @@ abstract contract OnchainFileStorage is Ownable {
      */
     function fileContents(
         string calldata fileName
-    ) external view returns (string memory) {
+    ) external view returns (bytes memory) {
         bytes memory _fileName = bytes(fileName);
         if (_fileStorage[_fileName].length == 0) {
             _revert(FileNotRegistered.selector);
@@ -110,18 +110,16 @@ abstract contract OnchainFileStorage is Ownable {
 
         address[] memory fileStorageAddresses = _fileStorage[bytes(fileName)];
         uint256 fileStorageAddressesLength = fileStorageAddresses.length;
-        string memory contents = "";
+        bytes memory contents = "";
 
         for (uint256 i = 0; i < fileStorageAddressesLength; i++) {
-            contents = string(
-                abi.encodePacked(
-                    contents,
-                    string(
-                        _readBytecode(
-                            fileStorageAddresses[i],
-                            1,
-                            fileStorageAddresses[i].code.length - 1
-                        )
+            contents = abi.encodePacked(
+                contents,
+                string(
+                    _readBytecode(
+                        fileStorageAddresses[i],
+                        1,
+                        fileStorageAddresses[i].code.length - 1
                     )
                 )
             );

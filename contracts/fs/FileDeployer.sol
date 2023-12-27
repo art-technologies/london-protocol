@@ -13,14 +13,11 @@ contract FileDeployer {
      * @notice Used to deploy bytes as a contract's bytecode
      * @param contents Contents to be deployed as bytecode
      */
-    function deploy(
-        string[] calldata names,
-        string[] memory contents
-    ) external {
+    function deploy(string[] calldata names, bytes[] memory contents) external {
         uint256 contentsLength = contents.length;
         require(names.length == contentsLength, "Mismatched lengths");
         for (uint256 i = 0; i < contentsLength; i++) {
-            address contentAddress = _write(bytes(contents[i]));
+            address contentAddress = _write(contents[i]);
 
             emit DeployedContent(names[i], contentAddress);
         }
@@ -63,6 +60,10 @@ contract FileDeployer {
      * @ author SOLMATE
      */
     function _write(bytes memory data) private returns (address pointer) {
+        if (getBytesAddress(data) != address(0)) {
+            return getBytesAddress(data);
+        }
+
         bytes memory creationCode = _prepareCreationCode(data);
         bytes32 salt = keccak256(data);
 
@@ -86,12 +87,12 @@ contract FileDeployer {
      * @ author VERSE
      */
     function getDataAddresses(
-        string[] memory contents
+        bytes[] memory contents
     ) public view returns (address[] memory addresses) {
         addresses = new address[](contents.length);
 
         for (uint256 i = 0; i < contents.length; i++) {
-            addresses[i] = _getDataAddress(bytes(contents[i]));
+            addresses[i] = getBytesAddress(bytes(contents[i]));
         }
 
         return addresses;
@@ -101,7 +102,7 @@ contract FileDeployer {
      * @notice check if data was already deployed
      * @ author VERSE
      */
-    function _getDataAddress(bytes memory data) private view returns (address) {
+    function getBytesAddress(bytes memory data) public view returns (address) {
         bytes memory creationCode = _prepareCreationCode(data);
 
         bytes32 salt = keccak256(data);
