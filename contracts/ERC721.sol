@@ -38,6 +38,9 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
+    // Metadata Update event
+    event MetadataUpdate(uint256 _tokenId);
+
     // Used as the URI for all token types by relying on ID substitution, e.g.
     string public _baseUri;
 
@@ -125,6 +128,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      */
     function _setURI(string memory newuri_) internal virtual {
         _baseUri = newuri_;
+        emit MetadataUpdate(type(uint256).max);
     }
 
     /**

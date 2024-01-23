@@ -25,5 +25,12 @@ npx hardhat test ./test/LondonTokenFactory.ts
 ## Deploy
 
 ```shell
-npx
+multisol contracts/LondonTokenFactory.sol
 ```
+
+## Verify
+
+1. Verify `LondonTokenFactory`
+2. Deploy `LondonToken`
+3. Verify `LondonToken`
+4. Verify proxy by uploading `LondonToken`

@@ -169,16 +169,18 @@ describe("Test NFT collection", function () {
     expect(await collection.owner()).to.equal(deployer.address);
   });
 
-  it("Minter should mint NFT", async function () {
+  it("Minter should mint NFT with Payload", async function () {
+    const payload = "payload";
     const mintTx = await collection
       .connect(mintingManager)
-      .mint(collector.address, "1", "");
+      .mintWithPayload(collector.address, "1", payload);
     await expect(mintTx, "New transfer event").to.emit(collection, "Transfer");
+    expect(await collection.getPayload("1")).to.equal(payload);
   });
 
   it("Collector should not mint NFT", async function () {
     await expectRevert(
-      collection.connect(collector).mint(collector.address, "2", ""),
+      collection.connect(collector).mintWithPayload(collector.address, "2", ""),
       "Permission denied"
     );
   });
@@ -191,7 +193,7 @@ describe("Test NFT collection", function () {
     const payloads = Array(50).fill("");
     const mintTx = await collection
       .connect(mintingManager)
-      .mintBatch(addresses, tokenIds, payloads);
+      .mintBatchWithPayload(addresses, tokenIds, payloads);
     await expect(mintTx, "New transfer event").to.emit(collection, "Transfer");
   });
 
