@@ -242,6 +242,15 @@ contract LondonTokenBase is
     }
 
     /**
+     * @dev Sets the payload for a given token ID.
+     * @param tokenId The ID of the token.
+     * @param payload The payload to be stored.
+     */
+    function setPayload(uint256 tokenId, string memory payload) public onlyOwner {
+        _payloads[tokenId] = payload;
+    }
+
+    /**
      * @dev Checks for supported interface.
      *
      */
