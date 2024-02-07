@@ -30,7 +30,9 @@ multisol contracts/LondonTokenFactory.sol
 
 ## Verify
 
-1. Verify `LondonTokenFactory`
-2. Deploy `LondonToken`
-3. Verify `LondonToken`
-4. Verify proxy by uploading `LondonToken`
+1. Deploy `LondonTokenFactory` (Remix).
+1. Verify `LondonTokenFactory` (Remix).
+1. Deploy `LondonToken` (Remix)
+1. Verify `LondonToken` (Remix)
+1. Deploy `LondonToken` via `createCollection` method
+1. Verify `LondonToken` (Etherscan).
