@@ -5,13 +5,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC721.sol";
 import "./ERC2981PerTokenRoyalties.sol";
 import "./fs/OnchainFileStorage.sol";
+import "./IERC7572.sol";
 
 /// @custom:security-contact contact@verse.works
 contract LondonTokenBase is
     ERC721,
     Ownable,
     ERC2981PerTokenRoyalties,
-    OnchainFileStorage
+    OnchainFileStorage,
+    IERC7572
 {
     constructor() ERC721("", "VERSE", "") {}
 
@@ -68,6 +70,12 @@ contract LondonTokenBase is
 
     /** @notice Licensing information for the token. */
     string public license;
+
+
+    /**
+        * @dev Stores the EIP-7572 contract metadata URI (e.g. an IPFS or HTTPS link).
+    */
+    string private _contractURI;
 
     /**
      * @dev Sets Artist Name for the collection.
@@ -293,5 +301,27 @@ contract LondonTokenBase is
      */
     function setURI(string memory newuri) public onlyGatewayManager {
         _setURI(newuri);
+    }
+
+    function getTestWord() public pure returns (string memory) {
+        return "test";
+    }
+
+    /**
+    * @dev EIP-7572 standard function to return the contract-level metadata URI.
+     */
+    function contractURI() external view override returns (string memory) {
+        return _contractURI;
+    }
+
+    /**
+ * @dev Allows the owner to update the contract-level metadata URI.
+     *      Emits a {ContractURIUpdated} event for on-chain indexing and discovery.
+     *
+     * @param newContractURI The new URI (e.g. IPFS hash, HTTPS link) for the contract metadata.
+     */
+    function setContractURI(string memory newContractURI) external onlyOwner {
+        _contractURI = newContractURI;
+        emit ContractURIUpdated(newContractURI);
     }
 }
