@@ -49,7 +49,18 @@ async function main() {
   ).attach(collectionAddress);
 
   console.log(await collection.name());
+
+  // --------------------------------------------------------------------------
+// NEW LINES: Demonstrate setting and reading contractURI in LondonTokenBase
+// --------------------------------------------------------------------------
+  const setURI = await collection.setContractURI("https://public-bucket-verse-dev.s3.eu-west-1.amazonaws.com/experiments/test_metadata.json");
+  await setURI.wait();
+
+  const currentURI = await collection.contractURI();
+  console.log("Updated contractURI =>", currentURI);
 }
+
+
 
 main().catch((error) => {
   console.error(error);
