@@ -303,10 +303,6 @@ contract LondonTokenBase is
         _setURI(newuri);
     }
 
-    function getTestWord() public pure returns (string memory) {
-        return "test";
-    }
-
     /**
     * @dev EIP-7572 standard function to return the contract-level metadata URI.
      */
